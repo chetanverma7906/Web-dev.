@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Stopwatch</title>
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f4;
+        }
+
+        #stopwatch {
+            text-align: center;
+        }
+
+        #display {
+            font-size: 3em;
+            margin-bottom: 10px;
+            color: #333;
+            letter-spacing: 2px;
+        }
+
+        button {
+            font-size: 1em;
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #3498db;
+            color: #fff;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        #lap-times {
+            margin-top: 20px;
+            text-align: center;
+            display: none;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        li {
+            margin: 5px;
+            padding: 10px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+        }
+
+        li:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <div id="stopwatch">
+        <h1 id="display">00:00:00</h1>
+        <button onclick="startStop()">Start/Stop</button>
+        <button onclick="reset()">Reset</button>
+        <button onclick="lap()">Lap</button>
+    </div>
+
+    <div id="lap-times">
+        <h2>Lap Times</h2>
+        <ul id="laps"></ul>
+    </div>
+
+    <script>
+        let isRunning = false;
+        let startTime;
+        let lapStartTime;
+        let laps = [];
+
+        function startStop() {
+            if (isRunning) {
+                stop();
+            } else {
+                start();
+            }
+        }
+
+        function start() {
+            isRunning = true;
+            startTime = new Date().getTime() - (lapStartTime || 0);
+            lapStartTime = 0;
+            update();
+            document.getElementById('lap-times').style.display = 'block';
+        }
+
+        function stop() {
+            isRunning = false;
+            lapStartTime = new Date().getTime() - startTime;
+        }
+
+        function reset() {
+            isRunning = false;
+            startTime = 0;
+            lapStartTime = 0;
+            laps = [];
+            update();
+            document.getElementById('lap-times').style.display = 'none';
+        }
+
+        function lap() {
+            if (isRunning) {
+                const lapTime = new Date().getTime() - startTime;
+                laps.push(formatTime(lapTime));
+                lapStartTime = new Date().getTime();
+                updateLaps();
+            }
+        }
+
+        function update() {
+            const currentTime = isRunning ? new Date().getTime() - startTime : lapStartTime;
+            document.getElementById('display').innerText = formatTime(currentTime);
+            if (isRunning) {
+                requestAnimationFrame(update);
+            }
+        }
+
+        function updateLaps() {
+            const lapsList = document.getElementById('laps');
+            lapsList.innerHTML = "";
+            laps.forEach((lap, index) => {
+                const lapItem = document.createElement('li');
+                lapItem.innerText = `Lap ${index + 1}: ${lap}`;
+                lapsList.appendChild(lapItem);
+            });
+        }
+
+        function formatTime(milliseconds) {
+            const date = new Date(milliseconds);
+            const minutes = date.getUTCMinutes();
+            const seconds = date.getUTCSeconds();
+            const millisecondsPart = Math.floor(date.getMilliseconds() / 10);
+            return `${formatTwoDigits(minutes)}:${formatTwoDigits(seconds)}:${formatTwoDigits(millisecondsPart)}`;
+        }
+
+        function formatTwoDigits(number) {
+            return number < 10 ? `0${number}` : number;
+        }
+    </script>
+</body>
+</html>
